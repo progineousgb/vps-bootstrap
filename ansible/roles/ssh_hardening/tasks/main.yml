@@ -1,0 +1,40 @@
+- name: Make sure sshd_config includes the drop-in directory
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    line: Include /etc/ssh/sshd_config.d/*.conf
+    insertbefore: BOF
+    validate: sshd -t -f %s
+
+# sshd uses the first value it reads for most options, so this file is
+# named to sort before cloud-init's 50-cloud-init.conf.
+- name: Install hardening drop-in
+  ansible.builtin.template:
+    src: 10-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload ssh
+
+- name: Validate full sshd config
+  ansible.builtin.command: sshd -t
+  changed_when: false
+
+# Ubuntu 22.10+ uses socket activation; the socket owns the port.
+- name: Check for ssh.socket
+  ansible.builtin.stat:
+    path: /lib/systemd/system/ssh.socket
+  register: ssh_socket_unit
+
+- name: Disable ssh.socket so Port in sshd_config takes effect
+  ansible.builtin.systemd:
+    name: ssh.socket
+    enabled: false
+    state: stopped
+  when: ssh_socket_unit.stat.exists and ssh_hardening_port | int != 22
+
+- name: Make sure ssh.service is enabled
+  ansible.builtin.systemd:
+    name: ssh
+    enabled: true
+    state: started

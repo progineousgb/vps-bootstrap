@@ -1,0 +1,7 @@
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone_name }}"
+
+- name: Enable NTP sync
+  ansible.builtin.command: timedatectl set-ntp true
+  changed_when: false

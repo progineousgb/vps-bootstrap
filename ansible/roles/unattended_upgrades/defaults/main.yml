@@ -1,0 +1,2 @@
+unattended_upgrades_auto_reboot: false
+unattended_upgrades_reboot_time: "04:00"

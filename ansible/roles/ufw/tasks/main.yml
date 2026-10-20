@@ -1,0 +1,31 @@
+- name: Install ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+- name: Rate-limit SSH
+  community.general.ufw:
+    rule: limit
+    port: "{{ ufw_ssh_port | string }}"
+    proto: tcp
+
+# Keeps the port Ansible is connected on open while moving SSH to a new port.
+- name: Keep current SSH port open
+  community.general.ufw:
+    rule: limit
+    port: "{{ ansible_port | default(22) | string }}"
+    proto: tcp
+  when: (ansible_port | default(22) | int) != (ufw_ssh_port | int)
+
+- name: Allow other TCP ports
+  community.general.ufw:
+    rule: allow
+    port: "{{ item | string }}"
+    proto: tcp
+  loop: "{{ ufw_allowed_tcp_ports }}"
+
+- name: Default deny incoming, enable
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming

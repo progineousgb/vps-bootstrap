@@ -1,0 +1,7 @@
+// {{ ansible_managed }}
+// Overrides for 50unattended-upgrades. The package file keeps the
+// distro's default origins (security updates).
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "{{ unattended_upgrades_auto_reboot | bool | lower }}";
+Unattended-Upgrade::Automatic-Reboot-Time "{{ unattended_upgrades_reboot_time }}";

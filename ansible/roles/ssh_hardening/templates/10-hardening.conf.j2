@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+Port {{ ssh_hardening_port }}
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+MaxAuthTries {{ ssh_hardening_max_auth_tries }}
+LoginGraceTime 30
+X11Forwarding no
+{% if ssh_hardening_allow_users %}
+AllowUsers {{ ssh_hardening_allow_users | join(' ') }}
+{% endif %}

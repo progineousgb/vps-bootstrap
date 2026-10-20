@@ -1,0 +1,27 @@
+# Admin account (role: user)
+user_name: deploy
+# One or more public keys. Required.
+user_ssh_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIReplaceWithYourOwnPublicKey deploy@laptop
+user_passwordless_sudo: true
+
+# SSH (roles: ssh_hardening, ufw, fail2ban)
+ssh_port: 22
+ssh_hardening_port: "{{ ssh_port }}"
+ssh_hardening_allow_users: ["{{ user_name }}"]
+ufw_ssh_port: "{{ ssh_port }}"
+fail2ban_ssh_port: "{{ ssh_port }}"
+
+ufw_allowed_tcp_ports: [80, 443]
+
+fail2ban_bantime: 1h
+fail2ban_findtime: 10m
+fail2ban_maxretry: 5
+
+unattended_upgrades_auto_reboot: false
+unattended_upgrades_reboot_time: "04:00"
+
+swap_size_mb: 1024
+swap_swappiness: 10
+
+timezone_name: UTC

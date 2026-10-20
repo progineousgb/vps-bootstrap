@@ -1,0 +1,42 @@
+- name: Refuse to run without an SSH key
+  ansible.builtin.assert:
+    that: user_ssh_keys | length > 0
+    fail_msg: Set user_ssh_keys, otherwise you will lock yourself out once password login is disabled.
+
+- name: Install sudo
+  ansible.builtin.apt:
+    name: sudo
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create admin user
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    groups: sudo
+    append: true
+    shell: /bin/bash
+    password: "!"
+    update_password: on_create
+
+- name: Install authorized keys
+  ansible.posix.authorized_key:
+    user: "{{ user_name }}"
+    key: "{{ user_ssh_keys | join('\n') }}"
+    exclusive: true
+
+- name: Passwordless sudo for admin user
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/90-{{ user_name }}
+    content: "{{ user_name }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+  when: user_passwordless_sudo | bool
+
+- name: Remove passwordless sudo rule
+  ansible.builtin.file:
+    path: /etc/sudoers.d/90-{{ user_name }}
+    state: absent
+  when: not user_passwordless_sudo | bool

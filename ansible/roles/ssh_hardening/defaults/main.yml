@@ -1,0 +1,3 @@
+ssh_hardening_port: 22
+ssh_hardening_allow_users: []
+ssh_hardening_max_auth_tries: 3

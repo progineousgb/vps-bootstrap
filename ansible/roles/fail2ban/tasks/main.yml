@@ -1,0 +1,23 @@
+# python3-systemd is needed for backend = systemd on Debian 12+, where
+# there is no /var/log/auth.log by default.
+- name: Install fail2ban
+  ansible.builtin.apt:
+    name:
+      - fail2ban
+      - python3-systemd
+    state: present
+
+- name: Configure sshd jail
+  ansible.builtin.template:
+    src: sshd.local.j2
+    dest: /etc/fail2ban/jail.d/sshd.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart fail2ban
+
+- name: Enable fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    enabled: true
+    state: started

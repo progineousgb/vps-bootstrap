@@ -1,0 +1,11 @@
+- name: Bootstrap a fresh VPS
+  hosts: vps
+  become: true
+  roles:
+    - timezone
+    - user
+    - unattended_upgrades
+    - swap
+    - ufw
+    - fail2ban
+    - ssh_hardening

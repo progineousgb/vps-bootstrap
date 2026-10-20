@@ -1,0 +1,3 @@
+user_name: deploy
+user_ssh_keys: []
+user_passwordless_sudo: true

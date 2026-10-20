@@ -1,0 +1,75 @@
+#cloud-config
+# First-boot setup for Debian 12/13 and Ubuntu 22.04/24.04.
+# Replace the username and the SSH key before use.
+
+hostname: vps1
+timezone: UTC
+
+users:
+  - name: deploy
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIReplaceWithYourOwnPublicKey deploy@laptop
+
+disable_root: true
+ssh_pwauth: false
+
+package_update: true
+package_upgrade: true
+packages:
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  - curl
+  - ca-certificates
+
+swap:
+  filename: /swapfile
+  size: 1G
+  maxsize: 1G
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/10-hardening.conf
+    permissions: "0644"
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PubkeyAuthentication yes
+      MaxAuthTries 3
+      LoginGraceTime 30
+      X11Forwarding no
+      AllowUsers deploy
+  - path: /etc/fail2ban/jail.d/sshd.local
+    permissions: "0644"
+    content: |
+      [sshd]
+      enabled = true
+      backend = systemd
+      maxretry = 5
+      findtime = 10m
+      bantime = 1h
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    permissions: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+  - path: /etc/sysctl.d/99-swappiness.conf
+    permissions: "0644"
+    content: |
+      vm.swappiness = 10
+
+runcmd:
+  - [sysctl, --system]
+  - [ufw, default, deny, incoming]
+  - [ufw, default, allow, outgoing]
+  - [ufw, limit, 22/tcp]
+  - [ufw, allow, 80/tcp]
+  - [ufw, allow, 443/tcp]
+  - [ufw, --force, enable]
+  - [systemctl, enable, --now, fail2ban]
+  - [sshd, -t]
+  - [systemctl, reload, ssh]

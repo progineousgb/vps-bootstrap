@@ -24,14 +24,14 @@
 - name: Check for ssh.socket
   ansible.builtin.stat:
     path: /lib/systemd/system/ssh.socket
-  register: ssh_socket_unit
+  register: ssh_hardening_socket_unit
 
 - name: Disable ssh.socket so Port in sshd_config takes effect
   ansible.builtin.systemd:
     name: ssh.socket
     enabled: false
     state: stopped
-  when: ssh_socket_unit.stat.exists and ssh_hardening_port | int != 22
+  when: ssh_hardening_socket_unit.stat.exists and ssh_hardening_port | int != 22
 
 - name: Make sure ssh.service is enabled
   ansible.builtin.systemd:

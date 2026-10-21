@@ -49,7 +49,7 @@ All set in [ansible/group_vars/all.yml](ansible/group_vars/all.yml):
 | Variable | Default | |
 |----------|---------|-|
 | `user_name` | `deploy` | Admin user to create |
-| `user_ssh_keys` | placeholder | List of public keys. The play stops if empty. Keys not in this list are removed from the user's `authorized_keys`. |
+| `user_ssh_keys` | placeholder | List of public keys. The play stops if empty. Exclusive: keys not in this list are removed from the user's `authorized_keys` on every run. See below. |
 | `user_passwordless_sudo` | `true` | Set `false` and give the user a password if you want sudo to ask |
 | `ssh_port` | `22` | See the note below before changing |
 | `ssh_hardening_allow_users` | `[user_name]` | Becomes `AllowUsers` |
@@ -69,6 +69,12 @@ sudo ufw delete <n>
 ```
 
 On Ubuntu 22.10 and later sshd is socket-activated; the role disables `ssh.socket` when the port is not 22 so the `Port` setting is honoured.
+
+### SSH keys are exclusive
+
+The Ansible user role installs `user_ssh_keys` with `exclusive: true`. On every run, `authorized_keys` for `user_name` is rewritten to hold exactly that list. Any key added by hand, by a provider panel, or by another tool is removed. Before you run the playbook against an existing server, put every key that should keep access into `user_ssh_keys`. To revoke a key, remove it from the list and run the playbook again.
+
+cloud-init writes the keys in `ssh_authorized_keys` once, on first boot, and does not manage them after that.
 
 ## Before you run either
 

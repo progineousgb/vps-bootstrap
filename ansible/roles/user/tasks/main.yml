@@ -19,7 +19,8 @@
     password: "!"
     update_password: on_create
 
-- name: Install authorized keys
+# exclusive: true replaces the whole authorized_keys file with user_ssh_keys.
+- name: Install authorized keys (exclusive)
   ansible.posix.authorized_key:
     user: "{{ user_name }}"
     key: "{{ user_ssh_keys | join('\n') }}"
